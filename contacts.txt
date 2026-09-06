@@ -1,7 +1,0 @@
-Campus Ambulance|108|Medical
-Police|112|Police
-Fire Department|101|Fire
-Campus Security|9999999999|Security
-Medical Centre|9999999998|Medical
-Hostel Warden|9999999997|Hostel
-raj|2314|work
