@@ -1,11 +1,13 @@
 #include <iostream>
 #include "ContactManager.h"
+#include "incident_manager.h"
 
 using namespace std;
 
 int main() {
 
     ContactManager contactManager;
+    IncidentManager incidentManager;
 
     int choice;
 
@@ -20,6 +22,10 @@ int main() {
         cout << "2. Display Emergency Contacts\n";
         cout << "3. Search Emergency Contact\n";
         cout << "4. Delete Emergency Contact\n";
+        cout << "5. Add Incident\n";
+        cout << "6. Display Incidents\n";
+        cout << "7. Search Incident\n";
+        cout << "8. Delete Incident\n";
         cout << "0. Exit\n";
 
         cout << "\nEnter your choice: ";
@@ -41,6 +47,22 @@ int main() {
 
             case 4:
                 contactManager.deleteContact();
+                break;
+
+            case 5:
+                incidentManager.addIncident();
+                break;
+
+            case 6:
+                incidentManager.displayIncidents();
+                break;
+
+            case 7:
+                incidentManager.searchIncident();
+                break;
+
+            case 8:
+                incidentManager.deleteIncident();
                 break;
 
             case 0:
