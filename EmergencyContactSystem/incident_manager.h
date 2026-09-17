@@ -13,7 +13,7 @@ private:
 public:
     IncidentManager();
 
-    void addIncident();
+    Incident addIncident();
     void displayIncidents();
     void searchIncident();
     void deleteIncident();

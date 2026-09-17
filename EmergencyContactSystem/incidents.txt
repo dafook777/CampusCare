@@ -1,1 +1,3 @@
 123|raj|geu|arm fracture |1|right arm fracutre few cuts on chin 
+1001|raj|basement |minor|1|bullying
+1002|ayush|ground flooor|fall|4|fell from 3rd floor

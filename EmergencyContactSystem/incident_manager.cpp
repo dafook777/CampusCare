@@ -10,18 +10,30 @@ IncidentManager::IncidentManager()
     incidents = FileManager::loadIncidents();
 }
 
-void IncidentManager::addIncident() {
+
+
+   Incident IncidentManager::addIncident() {
 
     Incident incident;
 
     cout << "\n========== REPORT EMERGENCY ==========\n";
 
-    cout << "Enter incident ID: ";
-    cin >> incident.id;
-    cin.ignore();
+    // Automatically generate ID
+    int maxID = 1000;
+
+    for (const Incident& existing : incidents) {
+
+        if (existing.id > maxID)
+            maxID = existing.id;
+    }
+
+    incident.id = maxID + 1;
+
+    cout << "Generated Incident ID: "
+         << incident.id << '\n';
 
     cout << "Enter reporter name: ";
-    getline(cin, incident.reporter);
+    getline(cin >> ws, incident.reporter);
 
     cout << "Enter incident location: ";
     getline(cin, incident.location);
@@ -29,18 +41,30 @@ void IncidentManager::addIncident() {
     cout << "Enter incident type: ";
     getline(cin, incident.type);
 
-    cout << "Enter severity (1=Low, 2=Medium, 3=High, 4=Critical): ";
+    cout << "Enter severity "
+            "(1=Low, 2=Medium, 3=High, 4=Critical): ";
+
     cin >> incident.severity;
-    cin.ignore();
+
+    if (incident.severity < 1 || incident.severity > 4) {
+
+        cout << "Invalid severity. Setting to Medium.\n";
+
+        incident.severity = 2;
+    }
 
     cout << "Enter description: ";
-    getline(cin, incident.description);
+    getline(cin >> ws, incident.description);
 
     incidents.push_back(incident);
+
     FileManager::saveIncidents(incidents);
 
     cout << "\nEmergency added successfully!\n";
+
+    return incident;
 }
+
 
 void IncidentManager::displayIncidents() {
 

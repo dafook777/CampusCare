@@ -5,3 +5,4 @@ Campus Security|9999999999|Security
 Medical Centre|9999999998|Medical
 Hostel Warden|9999999997|Hostel
 raj|2314|work
+yash|1234567|school
