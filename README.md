@@ -1,42 +1,62 @@
-# CampusCare
+# CampusCare — Emergency Ambulance Dispatch System (C++17)
 
-MEMBER 1: Responsible for the student-facing SOS trigger system with severity levels (Red/Orange/Yellow) and the core dispatch queueing logic. Implements request intake using a stack, and severity-based processing/ordering using STL sorting. Ensures emergency requests are captured and prioritized before being routed for response.
+This project extends the existing CampusCare contact/incident manager with a simulated ambulance dispatch module. It is a console application and does not use live GPS or a real ambulance service.
 
-MEMBER 2 : Responsible for modeling the campus as a graph and implementing Dijkstra's shortest-path algorithm to compute optimal routes for ambulance, security, and medical response units. Powers the "shortest route finder" and "nearest medical help" features, feeding routing data to the dispatch subsystem
+## Build
 
-MEMBER 3 : Responsible for the student data model and record-keeping subsystem. Implements student profiles using OOP principles and inheritance (base Student class extended for health/hostel/counselling records), with data linked via linked lists and managed through pointers. Owns Hostel Welfare Check, Counselling Appointments, Student Health Profile, and Weekly Wellbeing Check data structures.
+Compile all `.cpp` files together from this folder:
 
-MEMBER 4: Responsible for all file-based storage and system-wide analytics. Implements file handling for persistent storage (emergency contacts, incident logs) and uses STL algorithms with searching/sorting and binary search to generate the Emergency Analytics Dashboard/Heatmap and wellbeing statistics. Acts as the data layer other subsystems read from and write to for anything requiring persistence across sessions.
+```bash
+g++ -std=c++17 -Wall -Wextra -pedantic main.cpp ContactManager.cpp FileManager.cpp incident_manager.cpp EmergencySystem.cpp CampusGraph.cpp AmbulanceDispatch.cpp -o CampusCare
+```
 
-EMERGENCY AMBULANCE DISPATCH  SYSTEM
-    Stack/Priority Queue, STL sort, Dijkstra
-    
-STUDENT SOS BUTTON (RED,YELLOW,ORANGE)
-    Stack, STL sort, Priority Queue
-    
-CAMPUS LOCATION (SHORTEST ROUTE FINDER)
-    Algorithm (Dijkstra), Graph
-    
-CAMPUS SECURITY DISPATCH
-    Dijkstra, Stack
-    
-HOSTEL WELFARE CHECK SYSTEM
-    OOP, Linked List, Pointers
-    
-WEEKLY STUDENT WELL BEING CHECK 
-    OOP (student data), File Handling, Searching/Sorting
-    
-COUNSELLING APPOINTMENT 
-    OOP, Linked List
-    
-STUDENT HEALTH PROFILE 
-    OOP, Inheritance, Pointers
-EMERGENCY HEATMAP 
-    File Handling, STL Algorithms, Searching/Sorting
+Run it with `./CampusCare` on Linux/macOS or `CampusCare.exe` on Windows after compiling with a compatible C++ compiler.
 
-EMERGENCY CONTACTS 
-    File Handling
-    
-NEAREST MEDICAL HELP
-    Binary Search, Dijkstra	
+## Main menu additions
 
+- **14. Shortest route:** enter two exact graph location names to calculate a shortest route and distance using Dijkstra's algorithm.
+- **15. Ambulance fleet:** show ambulance IDs, locations and statuses. Fleet display is sorted by ID.
+- **16. Automatic dispatch:** enter an incident ID. If its text location is not a graph node, select the closest mapped location from the list. The system selects the nearest *reachable and available* ambulance, prints the route to the incident and the route from the incident to the nearest reachable hospital, and marks the ambulance Busy.
+- **17. Update availability:** mark a non-busy ambulance Available or Offline.
+- **18. Complete dispatch:** mark a Busy ambulance's call complete and return it to the nearest hospital from its simulated incident location; the ambulance becomes Available there.
+- **19. Dispatch log:** view dispatch successes, failures, status updates and completions.
+
+## Graph locations
+
+- Main Gate
+- Academic Block
+- Hostel
+- Medical Center (configured as the hospital)
+- Security Office
+- Library
+- Cafeteria
+- East Parking Lot (intentionally disconnected to test unreachable-route handling)
+
+Distances are example values in metres, not live map measurements. Edit the graph setup in `main.cpp` to model your campus.
+
+## Data files
+
+- `contacts.txt`: saved emergency contacts
+- `incidents.txt`: saved incidents
+- `ambulances.txt`: ambulance ID, current simulated location, status and assigned incident ID, separated by `|`
+- `dispatch_log.txt`: created automatically when the first dispatch event is logged
+
+Keep the executable and these data files in the same working directory when running the program.
+
+## C++ concepts demonstrated
+
+- OOP: `CampusGraph`, `AmbulanceDispatch`, `Ambulance`, `Vehicle`
+- Inheritance and virtual functions: `Ambulance` derives from `Vehicle`
+- Base-class pointers and polymorphic calls: fleet display uses `const Vehicle*`
+- STL: `vector`, `map`, `set`, `queue`, `priority_queue`, `pair`
+- File handling: persistent contact, incident, ambulance and dispatch data
+- Searching: incident/ambulance lookups and graph pathfinding
+- Sorting: ambulance fleet is displayed in ID order using `std::sort`
+- Algorithms: Dijkstra shortest paths, nearest available ambulance and nearest reachable hospital
+- Disconnected-node handling: unknown/unreachable routes are rejected without crashing or assigning an impossible dispatch
+
+## Notes
+
+- Ambulance status/location updates are simulated; real-time GPS tracking would require a GPS/mobile/web service integration.
+- The graph uses undirected paths with non-negative weights. Dijkstra's algorithm assumes non-negative edge distances.
+- If you add new ambulance locations to `ambulances.txt`, make sure those locations exist in the graph. Malformed or unknown-location records are ignored when loading.
