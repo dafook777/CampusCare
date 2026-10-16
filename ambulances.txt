@@ -1,0 +1,3 @@
+AMB-101|Main Gate|Available|-1
+AMB-102|Hostel|Available|-1
+AMB-103|Security Office|Available|-1
