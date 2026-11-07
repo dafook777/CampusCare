@@ -29,6 +29,12 @@ public:
                               std::string& hospital,
                               std::vector<std::string>& route,
                               int& distance) const;
+
+                              // Breadth First Search
+    std::vector<std::string> BFS(const std::string& start) const;
+
+// Depth First Search
+    std::vector<std::string> DFS(const std::string& start) const;
 };
 
 #endif // CAMPUS_GRAPH_H

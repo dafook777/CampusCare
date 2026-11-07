@@ -1,28 +1,58 @@
+
 #include "EmergencySystem.h"
 #include <iostream>
+#include <fstream>
 
 using namespace std;
 
-
 EmergencySystem::EmergencySystem() {
-    // Start with empty queues
+  loadProcessedIncidents();
 }
-
 
 EmergencySystem::EmergencySystem(
     const vector<Incident>& existingIncidents
 ) {
-
+    loadProcessedIncidents();
     for (const Incident& incident : existingIncidents) {
         addIncident(incident);
     }
 }
 
+void EmergencySystem::loadProcessedIncidents() {
+
+    ifstream file("processed_incidents.txt");
+
+    if (!file) {
+        return;
+    }
+
+    int id;
+
+    while (file >> id) {
+        processedIncidents.insert(id);
+    }
+
+}
+
+void EmergencySystem::saveProcessedIncidents() const {
+
+    ofstream file("processed_incidents.txt");
+
+    if (!file) {
+        cout << "Error saving processed incidents.\n";
+        return;
+    }
+
+    for (int id : processedIncidents) {
+        file << id << '\n';
+    }
+
+}
+
+
 // Converts severity number to text
 string severityName(int severity) {
-
     switch (severity) {
-
         case 1:
             return "Low";
 
@@ -40,23 +70,22 @@ string severityName(int severity) {
     }
 }
 
-
 // Displays one incident
 void printIncident(const Incident& incident) {
-
     cout << "\n----------------------------------------\n";
 
     cout << "Incident ID   : " << incident.id << '\n';
     cout << "Reporter      : " << incident.reporter << '\n';
     cout << "Location      : " << incident.location << '\n';
     cout << "Type          : " << incident.type << '\n';
+
     cout << "Severity      : "
          << severityName(incident.severity) << '\n';
+
     cout << "Description   : " << incident.description << '\n';
 
     cout << "----------------------------------------\n";
 }
-
 
 // Adds an incident to the emergency system
 void EmergencySystem::addIncident(const Incident& incident) {
@@ -71,12 +100,57 @@ void EmergencySystem::addIncident(const Incident& incident) {
     }
 }
 
+// NEW: Removes an incident from both queues
+void EmergencySystem::removeIncident(int incidentId) {
+
+    // Rebuild the normal queue without the deleted incident
+    queue<Incident> updatedNormalQueue;
+
+    while (!normalQueue.empty()) {
+
+        Incident incident = normalQueue.front();
+        normalQueue.pop();
+
+        if (incident.id != incidentId) {
+            updatedNormalQueue.push(incident);
+        }
+    }
+
+    normalQueue = updatedNormalQueue;
+
+
+    // Rebuild the priority queue without the deleted incident
+    priority_queue<
+        Incident,
+        vector<Incident>,
+        IncidentPriority
+    > updatedPriorityQueue;
+
+    while (!emergencyPriorityQueue.empty()) {
+
+        Incident incident = emergencyPriorityQueue.top();
+        emergencyPriorityQueue.pop();
+
+        if (incident.id != incidentId) {
+            updatedPriorityQueue.push(incident);
+        }
+    }
+
+    emergencyPriorityQueue = updatedPriorityQueue;
+
+
+    // Remove the incident from the processed set too
+    processedIncidents.erase(incidentId);
+    saveProcessedIncidents();
+
+    cout << "\nIncident #" << incidentId
+         << " removed from emergency queues.\n";
+}
 
 // Displays normal queue without modifying the actual queue
 void EmergencySystem::showNormalQueue() {
 
     if (normalQueue.empty()) {
-
         cout << "\nNo normal emergency requests.\n";
         return;
     }
@@ -90,7 +164,6 @@ void EmergencySystem::showNormalQueue() {
         Incident incident = temp.front();
         temp.pop();
 
-        // Don't display incidents that were already processed
         if (processedIncidents.find(incident.id)
             == processedIncidents.end()) {
 
@@ -99,12 +172,10 @@ void EmergencySystem::showNormalQueue() {
     }
 }
 
-
 // Displays priority queue without modifying the actual queue
 void EmergencySystem::showPriorityQueue() {
 
     if (emergencyPriorityQueue.empty()) {
-
         cout << "\nNo priority emergency requests.\n";
         return;
     }
@@ -118,7 +189,6 @@ void EmergencySystem::showPriorityQueue() {
         Incident incident = temp.top();
         temp.pop();
 
-        // Don't display already processed incidents
         if (processedIncidents.find(incident.id)
             == processedIncidents.end()) {
 
@@ -126,7 +196,6 @@ void EmergencySystem::showPriorityQueue() {
         }
     }
 }
-
 
 // Processes the next normal incident using FIFO
 void EmergencySystem::processNextNormal() {
@@ -136,7 +205,6 @@ void EmergencySystem::processNextNormal() {
         Incident incident = normalQueue.front();
         normalQueue.pop();
 
-        // Skip an incident that was already processed
         if (processedIncidents.find(incident.id)
             != processedIncidents.end()) {
 
@@ -147,15 +215,14 @@ void EmergencySystem::processNextNormal() {
 
         printIncident(incident);
 
-        // Mark it as processed
         processedIncidents.insert(incident.id);
+        saveProcessedIncidents();
 
         return;
     }
 
     cout << "\nNo incident available in normal queue.\n";
 }
-
 
 // Processes the highest-severity incident
 void EmergencySystem::processHighestPriority() {
@@ -165,7 +232,6 @@ void EmergencySystem::processHighestPriority() {
         Incident incident = emergencyPriorityQueue.top();
         emergencyPriorityQueue.pop();
 
-        // Skip an incident that was already processed
         if (processedIncidents.find(incident.id)
             != processedIncidents.end()) {
 
@@ -176,8 +242,8 @@ void EmergencySystem::processHighestPriority() {
 
         printIncident(incident);
 
-        // Mark it as processed
         processedIncidents.insert(incident.id);
+        saveProcessedIncidents();
 
         return;
     }

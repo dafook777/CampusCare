@@ -22,58 +22,145 @@ AmbulanceDispatch::AmbulanceDispatch(CampusGraph& campusGraph, vector<Incident>&
     loadAmbulances();
 }
 
+
 void AmbulanceDispatch::loadAmbulances() {
     ifstream file(ambulanceFile);
+    bool dataChanged = false;
+
     if (file) {
         string line;
+
         while (getline(file, line)) {
             if (line.empty()) continue;
+
             stringstream row(line);
             string id, location, status, incidentText;
-            if (getline(row, id, '|') && getline(row, location, '|') &&
-                getline(row, status, '|') && getline(row, incidentText)) {
-                try {
-                    int assigned = stoi(incidentText);
-                    if (graph.hasLocation(location) &&
-                        (status == "Available" || status == "Busy" || status == "Offline")) {
-                        ambulances.emplace_back(id, location, status, assigned);
+
+            if (!(getline(row, id, '|') &&
+                  getline(row, location, '|') &&
+                  getline(row, status, '|') &&
+                  getline(row, incidentText))) {
+                continue;
+            }
+
+            try {
+                int assigned = stoi(incidentText);
+
+                // Validate the ambulance data.
+                if (id.empty() ||
+                    !graph.hasLocation(location) ||
+                    (status != "Available" &&
+                     status != "Busy" &&
+                     status != "Offline")) {
+                    continue;
+                }
+
+                // Prevent duplicate ambulance IDs.
+                if (findAmbulanceIndex(id) != -1) {
+                    continue;
+                }
+
+                // A Busy ambulance must have a valid incident.
+                if (status == "Busy") {
+                    if (assigned == -1 || findIncident(assigned) == nullptr) {
+                        status = "Available";
+                        assigned = -1;
+                        dataChanged = true;
                     }
-                } catch (...) { /* Ignore malformed data rows. */ }
+                } else {
+                    // Available/Offline ambulances should not
+                    // retain an incident assignment.
+                    if (assigned != -1) {
+                        assigned = -1;
+                        dataChanged = true;
+                    }
+                }
+
+                ambulances.emplace_back(id, location, status, assigned);
+
+            } catch (...) {
+                // Ignore malformed data rows.
             }
         }
     }
 
+    // Create a demo fleet if no valid ambulance data was loaded.
     if (ambulances.empty()) {
-        // Demo fleet for the campus map; locations/statuses are simulated.
         ambulances.emplace_back("AMB-101", "Main Gate", "Available");
         ambulances.emplace_back("AMB-102", "Hostel", "Available");
         ambulances.emplace_back("AMB-103", "Security Office", "Available");
+
+        dataChanged = true;
+    }
+
+    if (dataChanged) {                                                                      
         saveAmbulances();
     }
 }
 
+
 void AmbulanceDispatch::saveAmbulances() const {
     ofstream file(ambulanceFile, ios::trunc);
+
+    if (!file.is_open()) {
+        cerr << "Error: Could not open " << ambulanceFile
+             << " for writing.\n";
+        return;
+    }
+
     for (const Ambulance& ambulance : ambulances) {
-        file << ambulance.getId() << '|' << ambulance.getLocation() << '|'
-             << ambulance.getStatus() << '|' << ambulance.getAssignedIncidentId() << '\n';
+        file << ambulance.getId() << '|'
+             << ambulance.getLocation() << '|'
+             << ambulance.getStatus() << '|'
+             << ambulance.getAssignedIncidentId() << '\n';
+
+        if (!file) {
+            cerr << "Error: Failed while writing ambulance data.\n";
+            return;
+        }
+    }
+
+    file.close();
+
+    if (file.fail()) {
+        cerr << "Error: Failed to close " << ambulanceFile << ".\n";
     }
 }
+
+
 
 void AmbulanceDispatch::appendLog(const string& message) const {
     ofstream file(logFile, ios::app);
-    if (!file) {
-        cerr << "Warning: could not write to " << logFile << ".\n";
+
+    if (!file.is_open()) {
+        cerr << "Warning: Could not open " << logFile
+             << " for writing.\n";
         return;
     }
+
     time_t now = time(nullptr);
     tm* localTime = localtime(&now);
-    if (localTime) file << put_time(localTime, "%Y-%m-%d %H:%M:%S") << " | ";
-    file << message << '\n';
-}
 
+    if (localTime != nullptr) {
+        file << put_time(localTime, "%Y-%m-%d %H:%M:%S")
+             << " | ";
+    } else {
+        file << "Unknown time | ";
+    }
+
+    file << message << '\n';
+
+    if (!file) {
+        cerr << "Warning: Failed to write dispatch log entry.\n";
+    }
+}
 Incident* AmbulanceDispatch::findIncident(int id) {
-    for (Incident& incident : incidents) if (incident.id == id) return &incident;
+    for (Incident& incident : incidents) {
+        if (incident.id == id) {
+            return &incident;
+        }
+    }
+
     return nullptr;
 }
 
@@ -111,10 +198,28 @@ void AmbulanceDispatch::displayAmbulances() const {
 void AmbulanceDispatch::dispatchIncident() {
     if (incidents.empty()) { cout << "\nNo incidents are recorded. Report an incident first.\n"; return; }
     int incidentId;
+
     cout << "\nEnter incident ID to dispatch an ambulance: ";
+
     if (!(cin >> incidentId)) { cin.clear(); cin.ignore(numeric_limits<streamsize>::max(), '\n'); cout << "Invalid ID.\n"; return; }
     Incident* incident = findIncident(incidentId);
-    if (!incident) { cout << "Incident not found.\n"; return; }
+    if (!incident) 
+    {
+         cout << "Incident not found.\n";
+          return; }
+// Check whether this incident already has an ambulance assigned.
+for (const Ambulance& ambulance : ambulances) {
+    if (ambulance.getAssignedIncidentId() == incidentId &&
+        ambulance.getStatus() == "Busy") {
+
+        cout << "This incident already has an ambulance assigned: "
+             << ambulance.getId() << '\n';
+
+        cout << "Complete the existing dispatch before assigning another ambulance.\n";
+        return;
+    }
+}
+
 
     string incidentLocation = incident->location;
     if (!graph.hasLocation(incidentLocation)) {
@@ -184,28 +289,68 @@ void AmbulanceDispatch::dispatchIncident() {
               " | hospital=" + hospital + " | hospital_route=" + joinRoute(hospitalRoute));
 }
 
+
 void AmbulanceDispatch::updateAmbulanceStatus() {
     string id;
+
     cout << "\nEnter ambulance ID: ";
-    cin >> ws;
-    getline(cin, id);
-    int index = findAmbulanceIndex(id);
-    if (index < 0) { cout << "Ambulance not found.\n"; return; }
-    Ambulance& ambulance = ambulances[static_cast<size_t>(index)];
-    if (ambulance.getStatus() == "Busy") {
-        cout << "This ambulance is assigned to an incident. Complete that dispatch before changing its status.\n";
+    getline(cin >> ws, id);
+
+    if (id.empty()) {
+        cout << "Ambulance ID cannot be empty.\n";
         return;
     }
-    cout << "1. Available\n2. Offline\nChoose new status: ";
+
+    int index = findAmbulanceIndex(id);
+
+    if (index < 0) {
+        cout << "Ambulance not found.\n";
+        return;
+    }
+
+    Ambulance& ambulance = ambulances[static_cast<size_t>(index)];
+
+    if (ambulance.getStatus() == "Busy") {
+        cout << "This ambulance is assigned to an incident. "
+             << "Complete that dispatch before changing its status.\n";
+        return;
+    }
+
+    cout << "\n1. Available\n";
+    cout << "2. Offline\n";
+    cout << "Choose new status: ";
+
     int choice;
-    if (!(cin >> choice)) { cin.clear(); cin.ignore(numeric_limits<streamsize>::max(), '\n'); cout << "Invalid choice.\n"; return; }
-    if (choice == 1) ambulance.setStatus("Available");
-    else if (choice == 2) ambulance.setStatus("Offline");
-    else { cout << "Invalid status choice.\n"; return; }
+
+    if (!(cin >> choice)) {
+        cin.clear();
+        cin.ignore(numeric_limits<streamsize>::max(), '\n');
+        cout << "Invalid choice. Please enter a number.\n";
+        return;
+    }
+
+    cin.ignore(numeric_limits<streamsize>::max(), '\n');
+
+    if (choice == 1) {
+        ambulance.setStatus("Available");
+    }
+    else if (choice == 2) {
+        ambulance.setStatus("Offline");
+    }
+    else {
+        cout << "Invalid status choice. Choose 1 or 2.\n";
+        return;
+    }
+
     saveAmbulances();
-    appendLog("STATUS UPDATE | ambulance=" + id + " | status=" + ambulance.getStatus());
-    cout << "Ambulance status updated to " << ambulance.getStatus() << ".\n";
+
+    appendLog("STATUS UPDATE | ambulance=" + id +
+              " | status=" + ambulance.getStatus());
+
+    cout << "Ambulance status updated to "
+         << ambulance.getStatus() << ".\n";
 }
+
 
 void AmbulanceDispatch::completeDispatch() {
     string id;
@@ -217,14 +362,31 @@ void AmbulanceDispatch::completeDispatch() {
     Ambulance& ambulance = ambulances[static_cast<size_t>(index)];
     if (ambulance.getStatus() != "Busy") { cout << "This ambulance has no active dispatch.\n"; return; }
 
+    
+int incidentId = ambulance.getAssignedIncidentId();
+
+// Check whether the assigned incident still exists.
+if (incidentId == -1 || findIncident(incidentId) == nullptr) {
+    cout << "The assigned incident no longer exists.\n";
+    cout << "Resetting ambulance status to Available.\n";
+
+    ambulance.clearAssignment(ambulance.getLocation());
+    saveAmbulances();
+
+    appendLog("RECOVERY | ambulance=" + id +
+              " | reason=assigned incident no longer exists");
+
+    return;
+}
+
     string hospital;
-    vector<string> route;
+    vector<string> route;   
     int distance = 0;
     if (!graph.nearestHospitalRoute(ambulance.getLocation(), hospital, route, distance)) {
         cout << "Could not find a hospital route from the ambulance's stored location. Status unchanged.\n";
         return;
     }
-    int incidentId = ambulance.getAssignedIncidentId();
+  
     ambulance.clearAssignment(hospital);
     saveAmbulances();
     appendLog("COMPLETED | incident=" + to_string(incidentId) + " | ambulance=" + id + " | new_location=" + hospital);

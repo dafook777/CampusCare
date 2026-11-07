@@ -1,3 +1,4 @@
+
 #ifndef EMERGENCYSYSTEM_H
 #define EMERGENCYSYSTEM_H
 
@@ -29,6 +30,8 @@ private:
     > emergencyPriorityQueue;
 
     set<int> processedIncidents;
+    void loadProcessedIncidents();
+    void saveProcessedIncidents() const;
 
 public:
 
@@ -39,6 +42,9 @@ public:
     EmergencySystem(const vector<Incident>& existingIncidents);
 
     void addIncident(const Incident& incident);
+
+    // NEW: Remove a deleted incident from both queues
+    void removeIncident(int incidentId);
 
     void showNormalQueue();
 

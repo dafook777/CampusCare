@@ -4,6 +4,8 @@
 #include "EmergencySystem.h"
 #include "CampusGraph.h"
 #include "AmbulanceDispatch.h"
+#include <string>
+#include<vector>
 
 using namespace std;
 
@@ -74,6 +76,8 @@ CampusGraph campus;
         cout << "17. Update Ambulance Availability\n";
         cout << "18. Complete Dispatch (return ambulance to hospital)\n";
         cout << "19. View Dispatch Log\n";
+        cout << "20. bfs traversal\n";
+        cout << "21. dfs traversal\n"; 
 
         cout << "0. Exit\n";
 
@@ -117,7 +121,15 @@ CampusGraph campus;
                 break;
 
             case 8:
-                incidentManager.deleteIncident();
+               {
+                int deletedId = incidentManager.deleteIncident();
+
+                     if (deletedId != -1) {
+                         emergencySystem.removeIncident(deletedId);
+    }
+
+    break;
+}
                 break;
 
             case 9:
@@ -183,10 +195,64 @@ CampusGraph campus;
                 ambulanceDispatch.displayDispatchLog();
                 break;
 
+           
+          
+            case 20: {
+                string start;
+
+                cout << "Enter starting location (exact name): ";
+                getline(cin >> ws, start);
+
+                vector<string> result = campus.BFS(start);
+
+                if (result.empty()) {
+                    cout << "Invalid starting location!\n";
+                }
+                else {
+                    cout << "BFS Traversal: ";
+
+                    for (size_t i = 0; i < result.size(); ++i) {
+                        if (i > 0) cout << " -> ";
+                        cout << result[i];
+                    }
+
+                    cout << '\n';
+                }
+
+                break;
+            }
+
+            
+            case 21: {
+                string start;
+
+                cout << "Enter starting location (exact name): ";
+                getline(cin >> ws, start);
+
+                vector<string> result = campus.DFS(start);
+
+                if (result.empty()) {
+                    cout << "Invalid starting location!\n";
+                }
+                else {
+                    cout << "DFS Traversal: ";
+
+                    for (size_t i = 0; i < result.size(); ++i) {
+                        if (i > 0) cout << " -> ";
+                        cout << result[i];
+                    }
+
+                    cout << '\n';
+                }
+
+                break;
+            }
+
             case 0:
                 contactManager.saveData();
                 cout << "\nExiting CampusCare...\n";
                 break;
+
 
             default:
                 cout << "\nInvalid choice!\n";

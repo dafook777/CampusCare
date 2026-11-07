@@ -2,6 +2,7 @@
 #include <iostream>
 #include <iomanip>
 #include <queue>
+#include<stack>
 #include <algorithm>
 
 using namespace std;
@@ -143,4 +144,87 @@ bool CampusGraph::nearestHospitalRoute(const string& start, string& hospital,
     route = bestRoute;
     distance = bestDistance;
     return true;
+                                      }
+    
+vector<string> CampusGraph::BFS(const string& start) const {
+
+    // Check whether the starting location exists
+    if (!hasLocation(start)) return {};
+
+    vector<string> traversal;
+    set<string> visited;
+    queue<string> pending;
+
+    // Start BFS from the given location
+    visited.insert(start);
+    pending.push(start);
+
+    while (!pending.empty()) {
+
+        string current = pending.front();
+        pending.pop();
+
+        // Add current location to traversal result
+        traversal.push_back(current);
+
+        // Visit all adjacent locations
+        for (const auto& edge : adj.at(current)) {
+
+            string neighbor = edge.first;
+
+            if (visited.find(neighbor) == visited.end()) {
+
+                visited.insert(neighbor);
+                pending.push(neighbor);
+            }
+        }
+    }
+
+    return traversal;
+
+
 }
+
+
+vector<string> CampusGraph::DFS(const string& start) const {
+
+    // Check whether the starting location exists
+    if (!hasLocation(start)) return {};
+
+    vector<string> traversal;
+    set<string> visited;
+    stack<string> pending;
+
+    pending.push(start);
+
+    while (!pending.empty()) {
+
+        string current = pending.top();
+        pending.pop();
+
+        // Skip if already visited
+        if (visited.find(current) != visited.end()) {
+            continue;
+        }
+
+        visited.insert(current);
+        traversal.push_back(current);
+
+        // Push adjacent locations onto the stack
+        const auto& neighbors = adj.at(current);
+
+        // Reverse iteration preserves adjacency order
+        for (auto it = neighbors.rbegin();
+             it != neighbors.rend(); ++it) {
+
+            if (visited.find(it->first) == visited.end()) {
+                pending.push(it->first);
+            }
+        }
+    }
+
+    return traversal;
+}
+
+
+
