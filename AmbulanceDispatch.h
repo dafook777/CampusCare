@@ -46,10 +46,13 @@
 
     public:
         AmbulanceDispatch(CampusGraph& campusGraph, std::vector<Incident>& incidentList);
-        void displayAmbulances() const;
-        void dispatchIncident();
+         int dispatchIncident();
+        int completeDispatch();
+        int getTotalAmbulances() const;
+        int getAvailableAmbulances() const;
+        void displayAmbulances () const;
         void updateAmbulanceStatus();
-        void completeDispatch();
+       
         void displayDispatchLog() const;
     };
 

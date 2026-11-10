@@ -12,6 +12,8 @@ struct Incident {
     string type;
     int severity;
     string description;
+    string ownerId;   // ID of the user who submitted the incident
+    string status;
 };
 
 #endif

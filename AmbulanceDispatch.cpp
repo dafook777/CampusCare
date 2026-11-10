@@ -182,7 +182,7 @@ string AmbulanceDispatch::joinRoute(const vector<string>& route) {
 
 void AmbulanceDispatch::displayAmbulances() const {
     cout << "\n========== AMBULANCE FLEET (simulated status) ==========\n";
-    if (ambulances.empty()) { cout << "No ambulances registered.\n"; return; }
+    if (ambulances.empty()) { cout << "No ambulances registered.\n"; return ; }
     // Sorting a copy keeps the stored fleet order unchanged.
     vector<Ambulance> sortedFleet = ambulances;
     sort(sortedFleet.begin(), sortedFleet.end(), [](const Ambulance& a, const Ambulance& b) {
@@ -195,18 +195,19 @@ void AmbulanceDispatch::displayAmbulances() const {
     }
 }
 
-void AmbulanceDispatch::dispatchIncident() {
-    if (incidents.empty()) { cout << "\nNo incidents are recorded. Report an incident first.\n"; return; }
+int AmbulanceDispatch::dispatchIncident() {
+
+    if (incidents.empty()) { cout << "\nNo incidents are recorded. Report an incident first.\n"; return -1; }
     int incidentId;
 
     cout << "\nEnter incident ID to dispatch an ambulance: ";
 
-    if (!(cin >> incidentId)) { cin.clear(); cin.ignore(numeric_limits<streamsize>::max(), '\n'); cout << "Invalid ID.\n"; return; }
+    if (!(cin >> incidentId)) { cin.clear(); cin.ignore(numeric_limits<streamsize>::max(), '\n'); cout << "Invalid ID.\n"; return -1; }
     Incident* incident = findIncident(incidentId);
     if (!incident) 
     {
          cout << "Incident not found.\n";
-          return; }
+          return -1; }
 // Check whether this incident already has an ambulance assigned.
 for (const Ambulance& ambulance : ambulances) {
     if (ambulance.getAssignedIncidentId() == incidentId &&
@@ -216,7 +217,7 @@ for (const Ambulance& ambulance : ambulances) {
              << ambulance.getId() << '\n';
 
         cout << "Complete the existing dispatch before assigning another ambulance.\n";
-        return;
+        return -1;
     }
 }
 
@@ -230,8 +231,8 @@ for (const Ambulance& ambulance : ambulances) {
             cout << (i + 1) << ". " << locations[i] << '\n';
         cout << "Choice: ";
         int selected;
-        if (!(cin >> selected)) { cin.clear(); cin.ignore(numeric_limits<streamsize>::max(), '\n'); cout << "Invalid choice.\n"; return; }
-        if (selected < 1 || selected > static_cast<int>(locations.size())) { cout << "Invalid location choice.\n"; return; }
+        if (!(cin >> selected)) { cin.clear(); cin.ignore(numeric_limits<streamsize>::max(), '\n'); cout << "Invalid choice.\n"; return -1; }
+        if (selected < 1 || selected > static_cast<int>(locations.size())) { cout << "Invalid location choice.\n"; return -1; }
         incidentLocation = locations[static_cast<size_t>(selected - 1)];
     }
 
@@ -253,7 +254,7 @@ for (const Ambulance& ambulance : ambulances) {
     if (selectedIndex == -1) {
         cout << "No available ambulance can reach this incident. Check fleet status and graph connectivity.\n";
         appendLog("FAILED | incident=" + to_string(incidentId) + " | location=" + incidentLocation + " | reason=no reachable available ambulance");
-        return;
+        return -1;
     }
 
     string hospital;
@@ -262,7 +263,8 @@ for (const Ambulance& ambulance : ambulances) {
     if (!graph.nearestHospitalRoute(incidentLocation, hospital, hospitalRoute, hospitalDistance)) {
         cout << "No hospital is reachable from the incident site. Dispatch cancelled.\n";
         appendLog("FAILED | incident=" + to_string(incidentId) + " | location=" + incidentLocation + " | reason=no reachable hospital");
-        return;
+        return incidentId;
+        return -1;
     }
 
     Ambulance& ambulance = ambulances[static_cast<size_t>(selectedIndex)];
@@ -287,6 +289,7 @@ for (const Ambulance& ambulance : ambulances) {
     appendLog("SUCCESS | incident=" + to_string(incidentId) + " | ambulance=" + ambulance.getId() +
               " | incident_location=" + incidentLocation + " | ambulance_route=" + joinRoute(bestRoute) +
               " | hospital=" + hospital + " | hospital_route=" + joinRoute(hospitalRoute));
+              return incidentId;
 }
 
 
@@ -352,15 +355,15 @@ void AmbulanceDispatch::updateAmbulanceStatus() {
 }
 
 
-void AmbulanceDispatch::completeDispatch() {
+int AmbulanceDispatch::completeDispatch() {
     string id;
     cout << "\nEnter ambulance ID whose dispatch is complete: ";
     cin >> ws;
     getline(cin, id);
     int index = findAmbulanceIndex(id);
-    if (index < 0) { cout << "Ambulance not found.\n"; return; }
+    if (index < 0) { cout << "Ambulance not found.\n"; return -1; }
     Ambulance& ambulance = ambulances[static_cast<size_t>(index)];
-    if (ambulance.getStatus() != "Busy") { cout << "This ambulance has no active dispatch.\n"; return; }
+    if (ambulance.getStatus() != "Busy") { cout << "This ambulance has no active dispatch.\n"; return-1; }
 
     
 int incidentId = ambulance.getAssignedIncidentId();
@@ -376,7 +379,7 @@ if (incidentId == -1 || findIncident(incidentId) == nullptr) {
     appendLog("RECOVERY | ambulance=" + id +
               " | reason=assigned incident no longer exists");
 
-    return;
+    return -1;
 }
 
     string hospital;
@@ -384,13 +387,14 @@ if (incidentId == -1 || findIncident(incidentId) == nullptr) {
     int distance = 0;
     if (!graph.nearestHospitalRoute(ambulance.getLocation(), hospital, route, distance)) {
         cout << "Could not find a hospital route from the ambulance's stored location. Status unchanged.\n";
-        return;
+        return -1                                                                                                                                                                   ;
     }
   
     ambulance.clearAssignment(hospital);
     saveAmbulances();
     appendLog("COMPLETED | incident=" + to_string(incidentId) + " | ambulance=" + id + " | new_location=" + hospital);
     cout << "Dispatch marked complete. " << id << " is now Available at " << hospital << ".\n";
+    return incidentId;
 }
 
 void AmbulanceDispatch::displayDispatchLog() const {
@@ -402,4 +406,19 @@ void AmbulanceDispatch::displayDispatchLog() const {
     while (getline(file, line)) { cout << line << '\n'; any = true; }
     if (!any) cout << "No dispatch events recorded yet.\n";
     cout << "==============================================\n";
+}
+int AmbulanceDispatch::getTotalAmbulances() const {
+    return static_cast<int>(ambulances.size());
+}
+
+int AmbulanceDispatch::getAvailableAmbulances() const {
+    int count = 0;
+
+    for (const Ambulance& ambulance : ambulances) {
+        if (ambulance.getStatus() == "Available") {
+            count++;
+        }
+    }
+
+    return count;
 }

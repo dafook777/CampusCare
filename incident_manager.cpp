@@ -38,9 +38,10 @@ IncidentManager::IncidentManager()
  }
 
    
-Incident IncidentManager::addIncident() {
-
+Incident IncidentManager::addIncident(const string& ownerId) {
     Incident incident;
+    incident.ownerId = ownerId;
+    incident.status= "pending";
 
     cout << "\n========== REPORT EMERGENCY ==========\n";
 
@@ -132,6 +133,126 @@ void IncidentManager::displayIncidents() {
 }
 
 
+void IncidentManager::displayMyReports(const string& ownerId) {
+
+    bool found = false;
+
+    cout << "\n========== MY INCIDENT REPORTS ==========\n";
+
+    for (const Incident& incident : incidents) {
+
+        if (incident.ownerId == ownerId) {
+
+            found = true;
+
+            cout << "\nIncident ID : " << incident.id;
+            cout << "\nReporter    : " << incident.reporter;
+            cout << "\nLocation    : " << incident.location;
+            cout << "\nType        : " << incident.type;
+            cout << "\nSeverity    : " << incident.severity;
+            cout << "\nDescription : " << incident.description;
+            cout << "\nStatus      : " << incident.status;
+            cout << "\n-----------------------------------------\n";
+        }
+    }
+
+    if (!found) {
+        cout << "\nYou haven't submitted any incident reports yet.\n";
+    }
+}
+
+
+bool IncidentManager::updateIncidentStatus(Incident& updatedIncident) {
+
+    int id;
+
+    cout << "\nEnter incident ID to update: ";
+
+    if (!(cin >> id)) {
+        cin.clear();
+        cin.ignore(numeric_limits<streamsize>::max(), '\n');
+
+        cout << "\nInvalid incident ID.\n";
+        return false;
+    }
+
+    // Find the incident using the hash table
+    auto it = incidentHashTable.find(id);
+
+    if (it == incidentHashTable.end()) {
+        cout << "\nIncident not found.\n";
+        return false;
+    }
+
+    cout << "\nCurrent status: " << it->second.status << '\n';
+
+    cout << "\nChoose new status:\n";
+    cout << "1. Pending\n";
+    cout << "2. Under Review\n";
+    cout << "3. In Progress\n";
+    cout << "4. Resolved\n";
+    cout << "Enter choice: ";
+
+    int statusChoice;
+
+    if (!(cin >> statusChoice)) {
+        cin.clear();
+        cin.ignore(numeric_limits<streamsize>::max(), '\n');
+
+        cout << "\nInvalid choice.\n";
+        return false;
+    }
+
+    string newStatus;
+
+    switch (statusChoice) {
+        case 1:
+            newStatus = "Pending";
+            break;
+
+        case 2:
+            newStatus = "Under Review";
+            break;
+
+        case 3:
+            newStatus = "In Progress";
+            break;
+
+        case 4:
+            newStatus = "Resolved";
+            break;
+
+        default:
+            cout << "\nInvalid status choice.\n";
+            return false;
+    }
+
+    // Update the incident in the main vector
+    for (Incident& incident : incidents) {
+
+        if (incident.id == id) {
+
+            incident.status = newStatus;
+
+            // Update the hash table copy
+            incidentHashTable[id] = incident;
+
+            // Save updated incidents
+            FileManager::saveIncidents(incidents);
+
+            // Return the updated incident to main.cpp
+            updatedIncident = incident;
+
+            cout << "\nIncident status updated successfully!\n";
+            cout << "New status: " << newStatus << '\n';
+
+            return true;
+        }
+    }
+
+    cout << "\nIncident not found.\n";
+    return false;
+}
 
    
 
@@ -290,3 +411,46 @@ void IncidentManager::sortIncidentsByLocation() {
 }
 
 
+int IncidentManager::getTotalIncidents() const {
+    return static_cast<int>(incidents.size());
+}
+
+int IncidentManager::getPendingIncidents() const {
+    int count = 0;
+
+    for (const Incident& incident : incidents) {
+        if (incident.status == "pending" ||
+            incident.status == "Pending" ||
+            incident.status == "Under Review" ||
+            incident.status == "In Progress") {
+            count++;
+        }
+    }
+
+    return count;
+}
+
+int IncidentManager::getResolvedIncidents() const {
+    int count = 0;
+
+    for (const Incident& incident : incidents) {
+        if (incident.status == "Resolved" ||
+            incident.status == "resolved") {
+            count++;
+        }
+    }
+
+    return count;
+}
+
+vector<int> IncidentManager::getSeverityCounts() const {
+    vector<int> counts(4, 0);
+
+    for (const Incident& incident : incidents) {
+        if (incident.severity >= 1 && incident.severity <= 4) {
+            counts[incident.severity - 1]++;
+        }
+    }
+
+    return counts;
+}

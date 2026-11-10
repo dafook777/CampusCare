@@ -1,9 +1,14 @@
+
 #include "FileManager.h"
 #include <fstream>
 #include <sstream>
 #include <iostream>
+#include <exception>
 
 using namespace std;
+
+
+// ================= CONTACT FUNCTIONS =================
 
 void FileManager::saveContacts(const vector<Contact>& contacts) {
 
@@ -54,6 +59,10 @@ vector<Contact> FileManager::loadContacts() {
 
     return contacts;
 }
+
+
+// ================= INCIDENT FUNCTIONS =================
+
 void FileManager::saveIncidents(const vector<Incident>& incidents) {
 
     ofstream file("incidents.txt");
@@ -70,7 +79,9 @@ void FileManager::saveIncidents(const vector<Incident>& incidents) {
              << incident.location << "|"
              << incident.type << "|"
              << incident.severity << "|"
-             << incident.description << endl;
+             << incident.description << "|"
+             << incident.ownerId << "|"
+             << incident.status << endl;
     }
 
     file.close();
@@ -95,19 +106,34 @@ vector<Incident> FileManager::loadIncidents() {
 
         Incident incident;
 
+        string idString;
         string severityString;
 
-        getline(ss, line, '|');
-        incident.id = stoi(line);
-
+        getline(ss, idString, '|');
         getline(ss, incident.reporter, '|');
         getline(ss, incident.location, '|');
         getline(ss, incident.type, '|');
-
         getline(ss, severityString, '|');
-        incident.severity = stoi(severityString);
-
         getline(ss, incident.description, '|');
+
+        // Load owner ID if it exists.
+        getline(ss, incident.ownerId, '|');
+
+        // Load status if it exists.
+        getline(ss, incident.status);
+
+        if (incident.status.empty()) {
+            incident.status = "Pending";
+        }
+
+        try {
+            incident.id = stoi(idString);
+            incident.severity = stoi(severityString);
+        }
+        catch (const exception&) {
+            cout << "Skipping invalid incident record.\n";
+            continue;
+        }
 
         incidents.push_back(incident);
     }

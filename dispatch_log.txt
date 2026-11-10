@@ -1,3 +1,5 @@
 2026-11-03 19:30:36 | SUCCESS | incident=1003 | ambulance=AMB-102 | incident_location=Hostel | ambulance_route=Hostel | hospital=Medical Center | hospital_route=Hostel -> Medical Center
 2026-11-03 19:31:14 | SUCCESS | incident=123 | ambulance=AMB-101 | incident_location=Main Gate | ambulance_route=Main Gate | hospital=Medical Center | hospital_route=Main Gate -> Security Office -> Medical Center
 2026-11-03 19:32:39 | COMPLETED | incident=123 | ambulance=AMB-101 | new_location=Medical Center
+2026-11-10 19:17:45 | SUCCESS | incident=123 | ambulance=AMB-103 | incident_location=Main Gate | ambulance_route=Security Office -> Main Gate | hospital=Medical Center | hospital_route=Main Gate -> Security Office -> Medical Center
+2026-11-10 19:18:25 | COMPLETED | incident=123 | ambulance=AMB-103 | new_location=Medical Center
