@@ -1,0 +1,10 @@
+.vscode/
+build/
+build-rel/
+gui/build/
+gui/build-rel/
+gui/dist/
+*.exe
+*.o
+*.zip
+gui_log.txt
