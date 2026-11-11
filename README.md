@@ -1,62 +1,93 @@
 # CampusCare — Emergency Ambulance Dispatch System (C++17)
 
-This project extends the existing CampusCare contact/incident manager with a simulated ambulance dispatch module. It is a console application and does not use live GPS or a real ambulance service.
+# CampusCare
 
-## Build
+Student safety and emergency response system for a college campus.
+Built in C++17 with two front ends over the same data files:
 
-Compile all `.cpp` files together from this folder:
+- **Console app** (backend): role-based menus for student, faculty and admin
+- **Qt 6 GUI** (`gui/`): desktop app with login, sidebar, dark/light theme
 
-```bash
-g++ -std=c++17 -Wall -Wextra -pedantic main.cpp ContactManager.cpp FileManager.cpp incident_manager.cpp EmergencySystem.cpp CampusGraph.cpp AmbulanceDispatch.cpp -o CampusCare
+## Features
+
+| Area | What it does |
+|---|---|
+| Campus map | 15 locations, 18 paths. Shortest route (Dijkstra) and fewest hops (BFS), walking-time estimate |
+| Incidents | Report, priority queue by severity, status tracking |
+| Ambulance | Fleet list, nearest-available dispatch by route distance, release, dispatch log |
+| Emergency contacts | View and manage contacts |
+| Student profiles | Name, branch, phone, blood group |
+| Concerns | Confidential student-to-faculty concerns |
+| Messages | Direct messages between users |
+| Notifications | Per-user alerts |
+| User management | Admin adds and removes users |
+
+## Roles
+
+- **Student**: report incidents, map, contacts, own profile, concerns, messages, notifications
+- **Faculty**: all of the above plus incident queue, ambulance dispatch, assigned concerns, student profiles
+- **Admin**: everything, plus dashboard, dispatch log, all concerns/messages, user management
+
+## Project structure
+
+```
+Campus_care/
+  main.cpp                 console menus
+  CampusGraph.*            Dijkstra, BFS, DFS
+  AmbulanceDispatch.*      ambulance logic
+  EmergencySystem.*        emergency queue
+  incident_manager.*       incidents
+  Student/Concern/Message/Notification managers
+  FileManager.*            load/save
+  *.txt                    data files
+  gui/
+    pages/                 one page per feature
+    services/              reads/writes the same .txt files as the backend
+    widgets/  theme/       DataTable, Badge, ThemeManager
+    NavRegistry.cpp        role-based sidebar
 ```
 
-Run it with `./CampusCare` on Linux/macOS or `CampusCare.exe` on Windows after compiling with a compatible C++ compiler.
-
-## Main menu additions
-
-- **14. Shortest route:** enter two exact graph location names to calculate a shortest route and distance using Dijkstra's algorithm.
-- **15. Ambulance fleet:** show ambulance IDs, locations and statuses. Fleet display is sorted by ID.
-- **16. Automatic dispatch:** enter an incident ID. If its text location is not a graph node, select the closest mapped location from the list. The system selects the nearest *reachable and available* ambulance, prints the route to the incident and the route from the incident to the nearest reachable hospital, and marks the ambulance Busy.
-- **17. Update availability:** mark a non-busy ambulance Available or Offline.
-- **18. Complete dispatch:** mark a Busy ambulance's call complete and return it to the nearest hospital from its simulated incident location; the ambulance becomes Available there.
-- **19. Dispatch log:** view dispatch successes, failures, status updates and completions.
-
-## Graph locations
-
-- Main Gate
-- Academic Block
-- Hostel
-- Medical Center (configured as the hospital)
-- Security Office
-- Library
-- Cafeteria
-- East Parking Lot (intentionally disconnected to test unreachable-route handling)
-
-Distances are example values in metres, not live map measurements. Edit the graph setup in `main.cpp` to model your campus.
+The GUI does not call the console managers (they mix input/output with logic). It uses its own service layer that reads and writes the same data file formats, so both front ends stay in sync.
 
 ## Data files
 
-- `contacts.txt`: saved emergency contacts
-- `incidents.txt`: saved incidents
-- `ambulances.txt`: ambulance ID, current simulated location, status and assigned incident ID, separated by `|`
-- `dispatch_log.txt`: created automatically when the first dispatch event is logged
+Plain text, one record per line. `users.txt` format: `<id> <role> [admin password]`.
+Admin passwords are stored in plain text. This is a demo project, not production auth.
 
-Keep the executable and these data files in the same working directory when running the program.
+## Build and run
 
-## C++ concepts demonstrated
+### Console app
+```
+g++ -std=c++17 *.cpp -o campuscare
+./campuscare
+```
 
-- OOP: `CampusGraph`, `AmbulanceDispatch`, `Ambulance`, `Vehicle`
-- Inheritance and virtual functions: `Ambulance` derives from `Vehicle`
-- Base-class pointers and polymorphic calls: fleet display uses `const Vehicle*`
-- STL: `vector`, `map`, `set`, `queue`, `priority_queue`, `pair`
-- File handling: persistent contact, incident, ambulance and dispatch data
-- Searching: incident/ambulance lookups and graph pathfinding
-- Sorting: ambulance fleet is displayed in ID order using `std::sort`
-- Algorithms: Dijkstra shortest paths, nearest available ambulance and nearest reachable hospital
-- Disconnected-node handling: unknown/unreachable routes are rejected without crashing or assigning an impossible dispatch
+### GUI (Windows)
+Requirements: Qt 6 (MinGW 64-bit), CMake, Ninja.
+```
+cd gui
+run.bat
+```
+`run.bat` sets the Qt paths and builds on first run. Edit the Qt path inside it if yours differs from `C:\Qt\6.12.0\mingw_64`.
 
-## Notes
+Manual build:
+```
+cmake -S . -B build -G Ninja -DCMAKE_PREFIX_PATH=C:/Qt/6.12.0/mingw_64 -DCMAKE_BUILD_TYPE=Release
+cmake --build build
+```
 
-- Ambulance status/location updates are simulated; real-time GPS tracking would require a GPS/mobile/web service integration.
-- The graph uses undirected paths with non-negative weights. Dijkstra's algorithm assumes non-negative edge distances.
-- If you add new ambulance locations to `ambulances.txt`, make sure those locations exist in the graph. Malformed or unknown-location records are ignored when loading.
+## Demo logins
+
+| Role | ID | Password |
+|---|---|---|
+| Admin | `admin` | `admin123` |
+| Faculty | `pleaseletmelogin` | none |
+| Student | `25101211029` | none |
+
+## Campus graph
+
+Edge weights are range midpoints in metres. The GUI uses double weights (32.5 m and 17.5 m are kept exact).
+
+## Author
+
+Yashraj Aswal, B.Tech CSE
