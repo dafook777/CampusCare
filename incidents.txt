@@ -1,3 +1,6 @@
-123|raj|geu|arm fracture |1|right arm fracutre few cuts on chin 
-1001|raj|basement |minor|1|bullying
-1002|ayush|ground flooor|fall|4|fell from 3rd floor
+123|raj|geu|arm fracture |1|right arm fracutre few cuts on chin ||Under Review
+1002|ayush|ground flooor|fall|4|fell from 3rd floor||Pending
+1003|lakshit|cafeteria|fight|1|ngas out here going crazy||Pending
+1004|om|library|fight|2|they tweakin over sum chips n shi|25101211029|Under Review
+1005|lakshit|Library|vandalism|4|they goin crazy over here |25101281363|pending
+1006|ram|Hostel|fight|4|royal rumble|25101211029|pending

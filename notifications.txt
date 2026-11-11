@@ -1,0 +1,6 @@
+1|25101211029|student|1006|Critical Alert|A critical incident has been reported at Hostel. Incident ID: 1006|0
+2|25101281363|student|1006|Critical Alert|A critical incident has been reported at Hostel. Incident ID: 1006|0
+3|pleaseletmelogin|faculty|1006|Critical Alert|A critical incident has been reported at Hostel. Incident ID: 1006|0
+4|admin|admin|1006|Critical Alert|A critical incident has been reported at Hostel. Incident ID: 1006|0
+5|admin|admin|123|Ambulance Dispatched|An ambulance has been dispatched for incident ID: 123|0
+6|admin|admin|123|Dispatch Completed|Ambulance dispatch completed for incident ID: 123|0
