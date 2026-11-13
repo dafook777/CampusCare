@@ -55,12 +55,20 @@ MapPage::MapPage(QWidget* parent) : BasePage(parent)
     connect(m_findBtn, &QPushButton::clicked, this, &MapPage::onFindRoute);
     ctrlLayout->addWidget(m_findBtn);
 
-    m_emergBtn = new QPushButton(QString::fromUtf8("\xF0\x9F\x8F\xA5  Nearest Emergency Facility"), controlsCard);
+    m_emergBtn = new QPushButton(QString::fromUtf8("\xF0\x9F\x8F\xA5  Nearest Emergency"), controlsCard);
     m_emergBtn->setCursor(Qt::PointingHandCursor);
     m_emergBtn->setFixedHeight(36);
     m_emergBtn->setStyleSheet("background: #d32f2f; color: white; font-weight: 600;");
     connect(m_emergBtn, &QPushButton::clicked, this, &MapPage::onFindEmergency);
     ctrlLayout->addWidget(m_emergBtn);
+
+    m_modeBtn = new QPushButton(QString::fromUtf8("🗺️ 2D View"), controlsCard);
+    m_modeBtn->setCursor(Qt::PointingHandCursor);
+    m_modeBtn->setFixedHeight(36);
+    m_modeBtn->setToolTip("Toggle between 3D Campus Tour and 2D Schematic Map");
+    m_modeBtn->setStyleSheet("background: #0288d1; color: white; font-weight: 600; padding: 0 12px;");
+    connect(m_modeBtn, &QPushButton::clicked, this, &MapPage::onToggleViewMode);
+    ctrlLayout->addWidget(m_modeBtn);
 
     ctrlLayout->addStretch(1);
     mainLayout->addWidget(controlsCard);
@@ -152,3 +160,15 @@ void MapPage::onFindEmergency()
     m_mapView->setHighlightedPath(res.path);
 }
 
+void MapPage::onToggleViewMode()
+{
+    if (m_mapView->viewMode() == CampusMapView::Mode3D) {
+        m_mapView->setViewMode(CampusMapView::Mode2D);
+        m_modeBtn->setText(QString::fromUtf8("🏢 3D Tour"));
+        m_modeBtn->setStyleSheet("background: #00e5ff; color: #0e1319; font-weight: 700; padding: 0 12px;");
+    } else {
+        m_mapView->setViewMode(CampusMapView::Mode3D);
+        m_modeBtn->setText(QString::fromUtf8("🗺️ 2D View"));
+        m_modeBtn->setStyleSheet("background: #0288d1; color: white; font-weight: 600; padding: 0 12px;");
+    }
+}

@@ -19,6 +19,7 @@ public:
 private slots:
     void onFindRoute();
     void onFindEmergency();
+    void onToggleViewMode();
 
 private:
     QComboBox*     m_fromCombo   = nullptr;
@@ -26,10 +27,10 @@ private:
     QComboBox*     m_algoCombo   = nullptr;
     QPushButton*   m_findBtn     = nullptr;
     QPushButton*   m_emergBtn    = nullptr;
+    QPushButton*   m_modeBtn     = nullptr;
     QLabel*        m_resultPath  = nullptr;
     QLabel*        m_resultStats = nullptr;
     CampusMapView* m_mapView     = nullptr;
 };
 
 #endif // MAPPAGE_H
-
