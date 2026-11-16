@@ -26,6 +26,8 @@ add_executable(CampusCareGUI
     widgets/Badge.h
     widgets/DataTable.cpp
     widgets/DataTable.h
+    widgets/StudentProfileCardDialog.cpp
+    widgets/StudentProfileCardDialog.h
     widgets/PlaceholderPage.cpp
     widgets/PlaceholderPage.h
     pages/DashboardPage.cpp
@@ -68,6 +70,8 @@ add_executable(CampusCareGUI
     services/NotificationService.h
     services/StudentService.cpp
     services/StudentService.h
+    services/FacultyService.cpp
+    services/FacultyService.h
     services/UserService.cpp
     services/UserService.h
     services/DispatchLogService.cpp

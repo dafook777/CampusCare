@@ -20,6 +20,8 @@ public:
     static QVector<StudentItem> loadAll();
     static StudentItem getById(const QString& id);
     static bool update(const StudentItem& s);
+    static QString photoPath(const QString& studentId);
+    static bool savePhoto(const QString& studentId, const QString& sourceImagePath);
 };
 
 #endif

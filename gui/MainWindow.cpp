@@ -7,11 +7,15 @@
 #include "widgets/BasePage.h"
 
 #include <QButtonGroup>
+#include <QDateTime>
 #include <QFrame>
 #include <QHBoxLayout>
 #include <QLabel>
+#include <QPainter>
+#include <QPainterPath>
 #include <QPushButton>
 #include <QStackedWidget>
+#include <QTimer>
 #include <QVBoxLayout>
 
 // ─────────────────────────────────────────────────────────────
@@ -81,12 +85,41 @@ void MainWindow::buildSidebar()
     vbox->setSpacing(0);
 
     // Brand
-    auto* brand = new QLabel(QString::fromUtf8("\xF0\x9F\x9B\xA1  CampusCare"));
-    brand->setObjectName("sidebarBrand");
-    vbox->addWidget(brand);
+    auto* brandBox = new QWidget;
+    auto* brandH = new QHBoxLayout(brandBox);
+    brandH->setContentsMargins(16, 20, 16, 6);
+    brandH->setSpacing(10);
 
-    auto* brandSub = new QLabel("Safety & Emergency Response");
+    auto* brandLogo = new QLabel;
+    QPixmap rawLogo(":/gehu_logo.png");
+    if (!rawLogo.isNull()) {
+        QPixmap scaled = rawLogo.scaled(32, 32, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+        QPixmap circ(32, 32);
+        circ.fill(Qt::transparent);
+        QPainter p(&circ);
+        p.setRenderHint(QPainter::Antialiasing);
+        p.setRenderHint(QPainter::SmoothPixmapTransform);
+        QPainterPath clip;
+        clip.addEllipse(0.5, 0.5, 31.0, 31.0);
+        p.setClipPath(clip);
+        p.drawPixmap(0, 0, scaled);
+        p.end();
+        brandLogo->setPixmap(circ);
+    } else {
+        brandLogo->setText(QString::fromUtf8("\xF0\x9F\x9B\xA1"));
+    }
+    brandLogo->setFixedSize(32, 32);
+    brandH->addWidget(brandLogo);
+
+    auto* brand = new QLabel("CampusCare");
+    brand->setStyleSheet("color: #e8edf3; font-size: 18px; font-weight: 700; background: transparent;");
+    brandH->addWidget(brand);
+    brandH->addStretch(1);
+    vbox->addWidget(brandBox);
+
+    auto* brandSub = new QLabel("GEHU Safety & Response");
     brandSub->setObjectName("sidebarBrandSub");
+    brandSub->setStyleSheet("padding-left: 18px; color: #5a6a7a; font-size: 11px;");
     vbox->addWidget(brandSub);
 
     // Separator
@@ -172,6 +205,19 @@ void MainWindow::buildTopBar()
 
     hbox->addStretch(1);
 
+    m_statusBeacon = new QLabel(QString::fromUtf8("\xE2\x97\x8F  SYSTEM ACTIVE"));
+    m_statusBeacon->setObjectName("systemStatusBeacon");
+    hbox->addWidget(m_statusBeacon);
+
+    m_clockLabel = new QLabel;
+    m_clockLabel->setObjectName("clockLabel");
+    updateClock();
+    hbox->addWidget(m_clockLabel);
+
+    m_clockTimer = new QTimer(this);
+    connect(m_clockTimer, &QTimer::timeout, this, &MainWindow::updateClock);
+    m_clockTimer->start(1000);
+
     m_userChip = new QLabel(m_ctx.userId + "  \xE2\x80\xA2  " + m_ctx.role);
     m_userChip->setObjectName("userChip");
     hbox->addWidget(m_userChip);
@@ -228,4 +274,11 @@ void MainWindow::onThemeToggle()
 void MainWindow::onLogout()
 {
     emit logoutRequested();
+}
+
+void MainWindow::updateClock()
+{
+    if (m_clockLabel) {
+        m_clockLabel->setText(QDateTime::currentDateTime().toString("hh:mm:ss AP  \xE2\x80\xA2  dd MMM yyyy"));
+    }
 }

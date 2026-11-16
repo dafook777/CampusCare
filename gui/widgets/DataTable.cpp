@@ -1,6 +1,7 @@
 #include "DataTable.h"
 
 #include <QHeaderView>
+#include <QLabel>
 #include <QLineEdit>
 #include <QTableWidget>
 #include <QVBoxLayout>
@@ -25,6 +26,7 @@ DataTable::DataTable(QWidget* parent) : QWidget(parent)
     m_table->setEditTriggers(QAbstractItemView::NoEditTriggers);
     m_table->setSortingEnabled(false);
     m_table->verticalHeader()->setVisible(false);
+    m_table->verticalHeader()->setDefaultSectionSize(36);
     m_table->horizontalHeader()->setStretchLastSection(true);
     m_table->horizontalHeader()->setSectionResizeMode(QHeaderView::Interactive);
     m_table->setShowGrid(false);
@@ -64,9 +66,26 @@ void DataTable::onSearch(const QString& text)
         if (!match) {
             for (int c = 0; c < m_table->columnCount(); ++c) {
                 auto* item = m_table->item(r, c);
-                if (item && item->text().toLower().contains(needle)) {
+                if (item && !item->text().isEmpty() && item->text().toLower().contains(needle)) {
                     match = true;
                     break;
+                }
+                auto* w = m_table->cellWidget(r, c);
+                if (w) {
+                    if (auto* lbl = qobject_cast<QLabel*>(w)) {
+                        if (lbl->text().toLower().contains(needle)) {
+                            match = true;
+                            break;
+                        }
+                    }
+                    const auto childLabels = w->findChildren<QLabel*>();
+                    for (auto* cl : childLabels) {
+                        if (cl->text().toLower().contains(needle)) {
+                            match = true;
+                            break;
+                        }
+                    }
+                    if (match) break;
                 }
             }
         }

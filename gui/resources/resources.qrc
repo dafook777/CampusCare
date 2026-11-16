@@ -1,5 +1,6 @@
 <RCC>
     <qresource prefix="/">
         <file alias="campus_bg.jpg">campus_bg.jpg</file>
+        <file alias="gehu_logo.png">gehu_logo.png</file>
     </qresource>
 </RCC>

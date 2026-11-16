@@ -133,16 +133,23 @@ QVector<NavEntry> buildNavRegistry()
 
     // ── Profiles ────────────────────────────────────────────
     entries.append({
-        "my_profile", "My profile", {"student"},
+        "my_profile", "My profile", {"student", "faculty"},
         [](QWidget* parent, const AppContext& ctx) -> QWidget* {
-            return new ProfilesPage(ctx, parent);
+            return new ProfilesPage(ctx, "my_profile", parent);
         }
     });
 
     entries.append({
-        "student_profiles", "Student profiles", {"faculty", "admin"},
+        "student_profiles", "Student profiles", {"faculty"},
         [](QWidget* parent, const AppContext& ctx) -> QWidget* {
-            return new ProfilesPage(ctx, parent);
+            return new ProfilesPage(ctx, "student_profiles", parent);
+        }
+    });
+
+    entries.append({
+        "user_profiles", "User profiles", {"admin"},
+        [](QWidget* parent, const AppContext& ctx) -> QWidget* {
+            return new ProfilesPage(ctx, "user_profiles", parent);
         }
     });
 

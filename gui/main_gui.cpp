@@ -3,6 +3,7 @@
 #include <QDateTime>
 #include <QDir>
 #include <QFile>
+#include <QIcon>
 #include <QPointer>
 #include <QTextStream>
 #include <windows.h>
@@ -71,6 +72,7 @@ int main(int argc, char* argv[])
     app.setApplicationName("CampusCare");
     app.setApplicationVersion("1.0");
     app.setOrganizationName("GEHU");
+    app.setWindowIcon(QIcon(":/gehu_logo.png"));
 
     const QString projectRoot = findAndSetProjectRoot();
     logMessage("App started. Project root: " + projectRoot);

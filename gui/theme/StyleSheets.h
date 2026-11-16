@@ -79,6 +79,14 @@ inline QString dark()
         "  color: #8b97a7; background: #12171f; border: 1px solid #2a3444;"
         "  border-radius: 12px; padding: 4px 14px; font-size: 12px;"
         "}"
+        "QLabel#systemStatusBeacon {"
+        "  color: #10b981; background: rgba(16, 185, 129, 25); border: 1px solid rgba(16, 185, 129, 60);"
+        "  border-radius: 12px; padding: 4px 12px; font-size: 11px; font-weight: 700;"
+        "}"
+        "QLabel#clockLabel {"
+        "  color: #94a3b8; font-size: 12px; font-weight: 600; font-family: 'Segoe UI', sans-serif;"
+        "  padding: 4px 12px; background: #12171f; border: 1px solid #2a3444; border-radius: 12px;"
+        "}"
 
         /* ── DataTable / QTableWidget ──────────────────── */
         "QLineEdit#searchBox {"
@@ -225,6 +233,14 @@ inline QString light()
         "QLabel#userChip {"
         "  color: #5f6b7a; background: #f3f6f9; border: 1px solid #e0e4ea;"
         "  border-radius: 12px; padding: 4px 14px; font-size: 12px;"
+        "}"
+        "QLabel#systemStatusBeacon {"
+        "  color: #059669; background: rgba(16, 185, 129, 30); border: 1px solid rgba(16, 185, 129, 80);"
+        "  border-radius: 12px; padding: 4px 12px; font-size: 11px; font-weight: 700;"
+        "}"
+        "QLabel#clockLabel {"
+        "  color: #475569; font-size: 12px; font-weight: 600; font-family: 'Segoe UI', sans-serif;"
+        "  padding: 4px 12px; background: #f1f5f9; border: 1px solid #cbd5e1; border-radius: 12px;"
         "}"
 
         /* ── DataTable / QTableWidget ──────────────────── */

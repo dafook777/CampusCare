@@ -66,3 +66,49 @@ bool StudentService::update(const StudentItem& s)
     return true;
 }
 
+QString StudentService::photoPath(const QString& studentId)
+{
+    if (studentId.isEmpty()) return QString();
+
+    const QStringList extensions = {".jpg", ".png", ".jpeg"};
+    const QStringList prefixes = {
+        "photos/",
+        "data/photos/",
+        "../photos/",
+        "../../photos/"
+    };
+
+    for (const auto& ext : extensions) {
+        for (const auto& prefix : prefixes) {
+            const QString candidate = DataPath::resolve(prefix + studentId + ext);
+            if (QFile::exists(candidate)) {
+                return candidate;
+            }
+        }
+    }
+    return QString();
+}
+
+bool StudentService::savePhoto(const QString& studentId, const QString& sourceImagePath)
+{
+    if (studentId.isEmpty() || sourceImagePath.isEmpty()) return false;
+    if (!QFile::exists(sourceImagePath)) return false;
+
+    QDir base(QCoreApplication::applicationDirPath());
+    base.mkpath("photos");
+    if (base.exists("data")) {
+        base.mkpath("data/photos");
+    }
+
+    const QString dest1 = base.filePath("photos/" + studentId + ".jpg");
+    if (QFile::exists(dest1)) QFile::remove(dest1);
+    bool ok = QFile::copy(sourceImagePath, dest1);
+
+    if (base.exists("data")) {
+        const QString dest2 = base.filePath("data/photos/" + studentId + ".jpg");
+        if (QFile::exists(dest2)) QFile::remove(dest2);
+        QFile::copy(sourceImagePath, dest2);
+    }
+    return ok;
+}
+
