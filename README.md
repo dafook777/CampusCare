@@ -1,4 +1,4 @@
-# CampusCare BACKEND
+# CampusCare CONSOLE
 
 # 🏥 CampusCare — Student Safety & Emergency Response System
 
